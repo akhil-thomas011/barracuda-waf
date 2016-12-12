@@ -1,0 +1,459 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "bwafadmin",
+      "metadata": {
+        "description": "The username to be given to all the deployed VMs"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "minLength": 8,
+      "metadata": {
+        "description": "The password to be given to all the deployed VMs"
+      }
+    },
+    "webVmCount": {
+      "type": "int",
+      "defaultValue": 2,
+      "metadata": {
+        "description": "The number of Web VMs to be created"
+      }
+
+    },
+    "bwafVmCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "The number of Barracuda-WAF VMs to be created"
+      }
+
+    }
+  },
+  "variables": {
+    "bwafVmCount": "[parameters('bwafVmCount')]",
+    "webVmCount": "[parameters('webVmCount')]",
+    "assetsastoken": "?st=2016-12-07T14%3A22%3A00Z&se=2017-12-08T14%3A22%3A00Z&sp=rl&sv=2015-12-11&sr=c&sig=vrKD0LNoKjkMQBNlunPzfUuZEYAs7v739mW2Fn8t%2FRs%3D",
+    "AssetLocation": "https://spektraazurelabs.blob.core.windows.net/barracuda/",
+    "storageAccountName": "[concat('storage',uniqueString(resourceGroup().id))]",
+    "StorageType": "Standard_LRS",
+    "VirtualNetworkName": "vnet",
+    "bwafSubnetName": "bwaf-Subnet",
+    "webSubnetName": "Web-Subnet",
+    "lbIPAddressName": "[concat('LB-pip-',uniqueString(resourceGroup().id))]",
+    "loadBalancerName": "webrdp-lb",
+    "loadBalancerID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
+    "loadBalancerIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('lbIPAddressName'))]",
+    "frontEndIPConfigID": "[concat(variables('loadBalancerID'),'/frontendIPConfigurations/loadBalancerFrontEnd')]",
+    "backEndIPConfigID": "[concat(variables('loadBalancerID'),'/ipConfigurations/ipconfig1')]",
+    "bwafAvailSetName": "bwaf-as",
+    "bwafVmName": "bwaf-vm",
+    "bwafVmIPAddressName": "[concat(variables('bwafVmName'), '-pip-',uniqueString(resourceGroup().id))]",
+    "bwafVmNicName": "[concat(variables('bwafVmName'), '-nic')]",
+    "bwafVmSize": "Standard_D1_v2",
+    "webAvailSetName": "web-as",
+    "webVmName": "web-vm",
+    "webVmIPAddressName": "[concat(variables('webVmName'), '-pip',uniqueString(resourceGroup().id))]",
+    "webVmNicName": "[concat(variables('webVmName'), '-nic')]",
+    "webVmSize": "Standard_D1_v2",
+    "webVmSku": "2012-R2-Datacenter",
+    "webVmPublisher": "MicrosoftWindowsServer",
+    "webVmOffer": "WindowsServer",
+    "webVmExtensionBlobName": "WebServerConfig.zip",
+    "webVmExtensionFunction": "WebServerConfig.ps1\\WebServerConfig"
+
+
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[concat(variables('bwafVmIPAddressName'), copyindex(1))]",
+      "apiVersion": "2016-03-30",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4
+      },
+      "copy": {
+        "name": "BWAFpipLoop",
+        "count": "[variables('bwafVmCount')]"
+      },
+      "resources": [ ],
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "BWAF Public IP"
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('lbIPAddressName')]",
+      "apiVersion": "2016-03-30",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4
+      },
+      "resources": [ ],
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "LB Public IP"
+      }
+    },
+
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('VirtualNetworkName')]",
+      "apiVersion": "2016-03-30",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('bwafSubnetName')]",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
+            }
+          },
+          {
+            "name": "[variables('webSubnetName')]",
+            "properties": {
+              "addressPrefix": "10.0.1.0/24"
+            }
+          }
+        ]
+      },
+      "resources": [ ],
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "Virtual Network"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "sku": {
+        "name": "[variables('StorageType')]",
+        "tier": "Standard"
+      },
+      "kind": "Storage",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "2016-01-01",
+      "location": "[resourceGroup().location]",
+      "properties": { },
+      "resources": [ ],
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "Storage Account"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('webAvailSetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "Web Avail Set"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('bwafAvailSetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "BWAF Avail Set"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('loadBalancerName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "Load Balancer"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('lbIPAddressName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "loadBalancerFrontEnd",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[variables('loadBalancerIPID')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "loadBalancerBackEnd"
+          }
+        ]
+        
+      }
+    },
+
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[concat(variables('loadBalancerName'), '/', 'RDPVM', copyIndex(1))]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LB nat rules"
+      },
+      "copy": {
+        "name": "lbNatLoop",
+        "count": "[variables('webvmCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
+      ],
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "[copyIndex(5001)]",
+        "backendPort": 3389,
+        "enableFloatingIP": false
+      }
+    },
+
+
+    {
+      "name": "[concat(variables('webVmNicName'), copyindex(1))]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "copy": {
+        "name": "WebnicLoop",
+        "count": "[variables('webVmCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('VirtualNetworkName'))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
+        "[concat('Microsoft.Network/loadBalancers/',variables('loadBalancerName'),'/inboundNatRules/', 'RDPVM', copyIndex(1))]"
+
+      ],
+      "tags": {
+        "displayName": "Web VM Nics"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName')), '/subnets/', variables('webSubnetName'))]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('loadBalancerID'), '/backendAddressPools/LoadBalancerBackend')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('loadBalancerID'),'/inboundNatRules/RDPVM',copyIndex(1))]"
+                }
+              ]
+            }
+          }
+        ]
+
+      }
+    },
+    {
+      "name": "[concat(variables('bwafVmNicName'), copyindex(1))]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "copy": {
+        "name": "BWAFnicLoop1",
+        "count": "[variables('bwafVmCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('VirtualNetworkName'))]",
+        "[concat(resourceId('Microsoft.Network/publicIPAddresses', variables('bwafVmIPAddressName')),copyindex(1))]"
+
+      ],
+      "tags": {
+        "displayName": "BWAF VM Nics"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[concat(resourceId('Microsoft.Network/publicIPAddresses', variables('bwafVmIPAddressName')),copyindex(1))]"
+              },
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName')), '/subnets/', variables('bwafSubnetName'))]"
+              }
+            }
+
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "copy": {
+        "name": "webSrvMachineLoop",
+        "count": "[variables('webVmCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('webVmNicName'), copyindex(1))]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('webAvailSetName'))]"
+      ],
+      "location": "[resourceGroup().location]",
+      "name": "[concat(variables('webVmName'), copyindex(1))]",
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('webAvailSetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[variables('webVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat('webserver',copyindex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('webVmPublisher')]",
+            "offer": "[variables('webVmOffer')]",
+            "sku": "[variables('webVmSku')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('webVmName')]",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/','vhds/', variables('webVmName'), copyindex(1), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNicName'), copyindex(1)))]"
+            }
+          ]
+        }
+      },
+      "tags": {
+        "displayName": "Web VM"
+      },
+      "type": "Microsoft.Compute/virtualMachines"
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('webVmName'), copyindex(1),'/',concat(variables('webVmName'), copyindex(1),'-web-dsc'))]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "webSrvMachineLoop",
+        "count": "[variables('webVmCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('webVmName'), copyindex(1))]"
+      ],
+      "tags": {
+        "displayName": "Web VM Extensions"
+      },
+      "properties": {
+        "autoUpgradeMinorVersion": true,
+        "protectedSettings": { },
+        "publisher": "Microsoft.Powershell",
+        "settings": {
+          "ModulesUrl": "[concat(variables('assetLocation'),variables('webVmExtensionBlobName'),variables('assetsastoken'))]",
+          "ConfigurationFunction": "[variables('webVmExtensionFunction')]",
+          "wmfVersion": "4.0",
+          "Properties": {
+          }
+        },
+        "type": "DSC",
+        "typeHandlerVersion": "2.19"
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('bwafVmName'), copyindex(1))]",
+      "apiVersion": "2015-06-15",
+      "copy": {
+        "name": "bwafSrvMachineLoop",
+        "count": "[variables('bwafVmCount')]"
+      },
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "BWAF VM"
+      },
+
+      "plan": {
+        "name": "hourly",
+        "publisher": "barracudanetworks",
+        "product": "waf"
+      },
+      "properties": {
+        "osProfile": {
+          "computerName": "[concat('bwafserver',copyindex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[variables('bwafVmSize')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "barracudanetworks",
+            "offer": "waf",
+            "sku": "hourly",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "name": "[variables('bwafVmName')]",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/','vhds/', variables('bwafVmName'), copyindex(1), '.vhd')]"
+            }
+          },
+          "dataDisks": [ ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('bwafVmNicName'), copyindex(1)))]"
+            }
+          ]
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('bwafAvailSetName'))]"
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('bwafVmNicName'), copyindex(1))]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('bwafAvailSetName'))]"
+      ]
+    }
+
+
+  ],
+  "outputs": {
+  }
+
+}
