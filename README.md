@@ -9,7 +9,7 @@
 
 
 This template deploys  **Barracuda Web Application Firewall VMs** along with the required number of **Web VMs**.
-Tags: Barracuda, Firewall
+ Tags: Barracuda, Firewall
 
 
 ## Prerequisites
