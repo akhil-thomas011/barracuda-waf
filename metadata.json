@@ -1,0 +1,7 @@
+{
+  "itemDisplayName": "Create Barracuda waf VMs and Web VMs",
+  "description": "This template creates desired number of Barracuda WAF VMs and Web VMs ",
+  "summary": "This template joins Creates Barracuda waf and Web VMs",
+  "githubUsername": "akhil-thomas011",
+  "dateUpdated": "2016-12-12"
+}
