@@ -46,16 +46,6 @@ The following resources are deployed as part of the solution
 
 You can click the "deploy to Azure" button at the beginning of this document. 
 
-## Usage
-
 #### Connect
 
-How to connect to the solution
-
-#### Management
-
-How to manage the solution
-
-## Notes
-
-Solution notes
+Follow the instruction on the Barracuda WAF Guide on the root folder. 
