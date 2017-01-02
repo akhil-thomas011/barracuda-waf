@@ -25,7 +25,8 @@ The following resources are deployed as part of the solution
 + **virtualNetworks**: 1 virtual Network that contains all the Web VMs and BWAF VMs.
 + **loadBalancers**: 1 Load Balancer that allow RDP access to all Web VMs.
 + **loadBalancers/inboundNatRules**: 1 Inbound NAT rule for each Web VMs created.
-+ **networkInterfaces**: 1 NIC for each BWAF VM and Web VMs created.
++ **networkInterfaces**: 1 NIC for each BWAF VM and Web VMs created. 
+
 #### Microsoft.Storage
 
 
