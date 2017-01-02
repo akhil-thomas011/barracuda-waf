@@ -14,7 +14,6 @@ This template deploys a **Barracuda Web Application Firewall**. The **Barracuda 
 
 ## Solution overview and deployed resources
 
-This is an overview of the solution
 
 The following resources are deployed as part of the solution
 
@@ -41,11 +40,11 @@ The following resources are deployed as part of the solution
 
 ## Prerequisites
 
-Decscription of the prerequistes for the deployment
+
 
 ## Deployment steps
 
-You can click the "deploy to Azure" button at the beginning of this document or follow the instructions for command line deployment using the scripts in the root of this repo.
+You can click the "deploy to Azure" button at the beginning of this document. 
 
 ## Usage
 
