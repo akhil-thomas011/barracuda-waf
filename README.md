@@ -1,4 +1,4 @@
-# barracuda-waf
+# Barracuda Web Application Firewall
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-quickstart-templates%2Fmaster%2Fbarracuda-waf%2Fazuredeploy.json" target="_blank">
 <img src="http://azuredeploy.net/deploybutton.png"/>
@@ -10,7 +10,7 @@
 
 This template deploys a **Barracuda Web Application Firewall**. The **Barracuda Web Application Firewall** is a **is an ideal solution for organizations looking to protect web apps from data breaches and defacement. With the Barracuda Web Application Firewall, administrators do not need to wait for clean code or even know how an application works to secure their applications. Organizations can ensure robust security with a Barracuda Web Application Firewall hardware or virtual appliance, deployed in Microsoft Azure.**
 
-`Tags: Tag1, Tag2, Tag3`
+`Tags: Barracuda, firewall, web application`
 
 ## Solution overview and deployed resources
 
@@ -18,26 +18,25 @@ This is an overview of the solution
 
 The following resources are deployed as part of the solution
 
-#### Resource provider 1
+#### Microsoft.Network
 
-Description Resource Provider 1
 
-+ **Resource type 1A**: Description Resource type 1A
-+ **Resource type 1B**: Description Resource type 1B
-+ **Resource type 1C**: Description Resource type 1C
++ **publicIPAddresses**: 1 public IP for Load Balancer and 1 for each Barracuda BWAF VMs.
++ **virtualNetworks**: 1 virtual Network that contains all the Web VMs and BWAF VMs.
++ **loadBalancers**: 1 Load Balancer that allow RDP access to all Web VMs.
++ **loadBalancers/inboundNatRules**: 1 Inbound NAT rule for each Web VMs created.
++ **networkInterfaces**: 1 NIC for each BWAF VM and Web VMs created.
+#### Microsoft.Storage
 
-#### Resource provider 2
 
-Description Resource Provider 2
++ **storageAccounts**: 1 Storage Account to store all VM disks.
 
-+ **Resource type 2A**: Description Resource type 2A
+#### Microsoft.Compute
 
-#### Resource provider 3
 
-Description Resource Provider 3
-
-+ **Resource type 3A**: Description Resource type 3A
-+ **Resource type 3B**: Description Resource type 3B
++ **availabilitySets**: 2 Availability Sets each for Web VMs and BWAF VMs.
++ **virtualMachines**: Specified number of BWAF VMs and Web VMs. 
++ **virtualMachines/extensions**: 1 for each Web VMs created. This extension sets up IIS on each Web VM. 
 
 ## Prerequisites
 
