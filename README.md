@@ -8,7 +8,7 @@
 </a>
 
 
-This template deploys a **Barracuda Web Application Firewall**. The **Barracuda Web Application Firewall** is a **is an ideal solution for organizations looking to protect web apps from data breaches and defacement. With the Barracuda Web Application Firewall, administrators do not need to wait for clean code or even know how an application works to secure their applications. Organizations can ensure robust security with a Barracuda Web Application Firewall hardware or virtual appliance, deployed in Microsoft Azure.**
+This template deploys a **Barracuda Web Application Firewall**. The **Barracuda Web Application Firewall** is an ideal solution for organizations looking to protect web apps from data breaches and defacement. With the Barracuda Web Application Firewall, administrators do not need to wait for clean code or even know how an application works to secure their applications. Organizations can ensure robust security with a Barracuda Web Application Firewall hardware or virtual appliance, deployed in Microsoft Azure.
 
 `Tags: Barracuda, firewall, web application`
 
