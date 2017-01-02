@@ -7,26 +7,8 @@
 <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
-To deploy this template using the scripts from the root of this repo: (change the folder name below to match the folder name for this sample)
 
-```PowerShell
-.\Deploy-AzureResourceGroup.ps1 -ResourceGroupLocation 'eastus' -ArtifactsStagingDirectory '[foldername]'
-```
-```bash
-azure-group-deploy.sh -a [foldername] -l eastus -u
-```
-If your sample has artifacts that need to be "staged" for deployment (Configuration Scripts, Nested Templates, DSC Packages) then set the upload switch on the command.
-You can optionally specify a storage account to use, if so the storage account must already exist within the subscription.  If you don't want to specify a storage account
-one will be created by the script (think of this as "temp" storage for AzureRM) and reused by subsequent deployments.
-
-```PowerShell
-.\Deploy-AzureResourceGroup.ps1 -ResourceGroupLocation 'eastus' -ArtifactsStagingDirectory '100-blank-template' -UploadArtifacts 
-```
-```bash
-azure-group-deploy.sh -a 100-blank-template -l eastus -u
-```
-
-This template deploys a **solution name**. The **solution name** is a **description**
+This template deploys a **Barracuda Web Application Firewall**. The **Barracuda Web Application Firewall** is a **is an ideal solution for organizations looking to protect web apps from data breaches and defacement. With the Barracuda Web Application Firewall, administrators do not need to wait for clean code or even know how an application works to secure their applications. Organizations can ensure robust security with a Barracuda Web Application Firewall hardware or virtual appliance, deployed in Microsoft Azure.**
 
 `Tags: Tag1, Tag2, Tag3`
 
