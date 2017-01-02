@@ -46,6 +46,6 @@ The following resources are deployed as part of the solution
 
 You can click the "deploy to Azure" button at the beginning of this document. 
 
-#### Connect
+## Connect
 
 Follow the instruction on the Barracuda WAF Guide on the root folder. 
