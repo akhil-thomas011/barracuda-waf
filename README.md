@@ -20,7 +20,7 @@ The following resources are deployed as part of the solution
 #### Microsoft.Network
 
 
-+ **publicIPAddresses**: 1 public IP for Load Balancer and 1 for each Barracuda BWAF VMs.
++ **publicIPAddresses**: 1 public IP for Load Balancer and 1 for each Barracuda WAF VMs.
 + **virtualNetworks**: 1 virtual Network that contains all the Web VMs and BWAF VMs.
 + **loadBalancers**: 1 Load Balancer that allow RDP access to all Web VMs.
 + **loadBalancers/inboundNatRules**: 1 Inbound NAT rule for each Web VMs created.
